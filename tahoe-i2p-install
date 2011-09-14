@@ -21,7 +21,7 @@
 
 # Release-specific metadata
 
-INSTALLER_VERSION="1.2.1"
+INSTALLER_VERSION="1.2.2"
 
 FOOLSCAP_VERSION="0.6.1"
 FOOLSCAP_PATCH_REVISION="r0"
@@ -63,7 +63,13 @@ FOOLSCAP_DIR="${WORKING_DIR}/${FOOLSCAP_PKG:-foolscap-src}"
 TAHOE_DEPS_DIR="${WORKING_DIR}/tahoe-deps"
 TAHOE_LAFS_DIR="${WORKING_DIR}/${TAHOE_LAFS_PKG:-tahoe-lafs-src}"
 
-PYTHON_VERSION=$(python --version 2>&1 | cut -d ' ' -f2 | cut -c 1-3)
+PYTHON="python"
+if [ -f /etc/arch-release ]; then
+    PYTHON="python2"
+    export PYCRYPTOPP_DISABLE_EMBEDDED_CRYPTOPP=1
+fi
+
+PYTHON_VERSION=$($PYTHON --version 2>&1 | cut -d ' ' -f2 | cut -c 1-3)
 
 # Detect sha256 checksum binary
 
@@ -114,8 +120,8 @@ build_foolscap() {
     echo ">>> Building foolscap"
     echo
 
-    python setup.py build || exit 1
-    python setup.py sdist || exit 1
+    $PYTHON setup.py build || exit 1
+    $PYTHON setup.py sdist || exit 1
     cp -f dist/* "${TAHOE_DEPS_DIR}"
 
     popd &> /dev/null
@@ -132,11 +138,11 @@ build_tahoe_lafs() {
     export PYTHONPATH="${TAHOE_LAFS_DIR}/support/lib/python${PYTHON_VERSION}/site-packages"
 
     if [[ -n ${opt_make_dist} ]] ; then
-        python setup.py build || exit 1
-        python setup.py bdist || exit 1
+        $PYTHON setup.py build || exit 1
+        $PYTHON setup.py bdist || exit 1
         cp -f dist/* "${WORKING_DIR}"
     else
-        python setup.py build || exit 1
+        $PYTHON setup.py build || exit 1
     fi
 
     popd &> /dev/null
