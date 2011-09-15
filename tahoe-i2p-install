@@ -21,7 +21,7 @@
 
 # Release-specific metadata
 
-INSTALLER_VERSION="1.2.2"
+INSTALLER_VERSION="1.2.3"
 
 FOOLSCAP_VERSION="0.6.1"
 FOOLSCAP_PATCH_REVISION="r0"
@@ -286,6 +286,11 @@ unpack_all() {
                 echo "Aborting." >&2
                 exit 1 ;;
         esac
+	if [ ! `which bzip2` ]; then
+		echo "bzip2 not found!"
+		echo "Please install bzip2 then re-run this script."
+		exit 1
+	fi
 
         tar -x ${filter_opt} -vf "${pkg}"
     done
