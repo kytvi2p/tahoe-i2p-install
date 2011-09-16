@@ -21,7 +21,7 @@
 
 # Release-specific metadata
 
-INSTALLER_VERSION="1.2.4"
+INSTALLER_VERSION="1.2.5"
 
 FOOLSCAP_VERSION="0.6.1"
 FOOLSCAP_PATCH_REVISION="r0"
@@ -431,6 +431,10 @@ while [[ $# > 0 ]] ; do
             echo "  ${TAHOE_LAFS_PATCH}"
             echo "  ${FOOLSCAP_PATCH}"
             echo
+	    echo
+	    echo "Downloads will be performed using $DOWNLOADWITH"
+	    echo "and checksums will be verified with"
+	    echo "$SHA256_BIN"
             exit 0 ;;
 
         -x|--no-fetch)
