@@ -21,19 +21,20 @@
 
 # Release-specific metadata
 
-INSTALLER_VERSION="1.2.3"
+INSTALLER_VERSION="1.2.4"
 
 FOOLSCAP_VERSION="0.6.1"
 FOOLSCAP_PATCH_REVISION="r0"
 FOOLSCAP_PATCH_SHA256="035071dab6ccba90b509e5a235492b60693b9912ebe152f83cdf385d8cc21c16"
+
 FOOLSCAP_SHA256="8b3e4fc678c5c41483b3130666583a1c3909713adcd325204daded7b67171ed5"
 
 TAHOE_DEPS_VERSION="22"
 TAHOE_DEPS_SHA256="fa484077d07992bb4959dc9a20e53d080b4176fb2936672b663601573785d6fe"
 
 TAHOE_LAFS_VERSION="1.8.3"
-TAHOE_LAFS_PATCH_REVISION="r0"
-TAHOE_LAFS_PATCH_SHA256="0025ca2620003102b69ad283b558ea4aa88639326ecaf35e3ac48166fbe7b773"
+TAHOE_LAFS_PATCH_REVISION="r1"
+TAHOE_LAFS_PATCH_SHA256="71a58a51623548d92380c62b2a5fbff94726dc25458453a48e956cd2421e4a04"
 TAHOE_LAFS_SHA256="a8c9cda31e0ea558eec9d5a2687d49c4ce7472a21a6b28c563b644c6b73bf502"
 
 # Fetch locations
@@ -69,6 +70,12 @@ PYTHON="python"
 
 if [ -f /etc/arch-release ]; then
     export PYCRYPTOPP_DISABLE_EMBEDDED_CRYPTOPP=1
+	if [ ! -e /sbin/ifconfig ]; then
+		echo "The current version of Tahoe-LAFS requires ifconfig"
+		echo "and this tool is deprecated in ArchLinux. Please install"
+		echo "the net-tools package and re-run this script."
+		exit 1
+	fi
 fi
 
 PYTHON_VERSION=$($PYTHON --version 2>&1 | cut -d ' ' -f2 | cut -c 1-3)
@@ -88,7 +95,10 @@ if [[ $? -gt 0 ]] ; then
     fi
 fi
 
-# We default to downloading with wget but if it's not available we fall back to curl
+# We default to downloading with wget. If wget is not found, we look
+# for aria2c. If aria2c is not found, we fallback to curl. If curl is not
+# available, we exit.
+
 if [ `which wget` ]; then
 	export DOWNLOADWITH="wget"
 elif [ `which aria2c` ]; then
