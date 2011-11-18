@@ -21,13 +21,13 @@
 
 # Release-specific metadata
 
-INSTALLER_VERSION="1.2.5c"
+INSTALLER_VERSION="1.2.6"
 
-FOOLSCAP_VERSION="0.6.1"
+FOOLSCAP_VERSION="0.6.2"
 FOOLSCAP_PATCH_REVISION="r0"
-FOOLSCAP_PATCH_SHA256="035071dab6ccba90b509e5a235492b60693b9912ebe152f83cdf385d8cc21c16"
+FOOLSCAP_PATCH_SHA256="cff8de23d53b2d97e05002dd032ac472e065bdf61985f23734ab8426dc0c6c32"
 
-FOOLSCAP_SHA256="8b3e4fc678c5c41483b3130666583a1c3909713adcd325204daded7b67171ed5"
+FOOLSCAP_SHA256="86741417a933f781c232db67f7961485e0348440c9d4f8b85dd5b5c4463f7efd"
 
 TAHOE_DEPS_VERSION="22"
 TAHOE_DEPS_SHA256="fa484077d07992bb4959dc9a20e53d080b4176fb2936672b663601573785d6fe"
@@ -75,31 +75,6 @@ if [ -f /etc/arch-release ]; then
 fi
 
 PYTHON="python"
-PYTHON_VERSION=$($PYTHON --version 2>&1 | cut -d ' ' -f2 | cut -c 1-3)
-if [ $? = "0" ]; then
-	case $PYTHON_VERSION in
-		2.[5-7])
-			;;
-		3*)
-			echo "$PYTHON is not an acceptable version. Searching for suitable python2 version."
-		if [ `which python2.7 2> /dev/null` ]; then
-			PYTHON="python2.7"
-		elif [ `which python2.6 2> /dev/null` ]; then
-			PYTHON="python2.6"
-		elif [ `which python2.5 2> /dev/null` ]; then
-			PYTHON="python2.5"
-		elif [`which python2 2> /dev/null` ]; then
-			PYTHON="python2"
-		else
-			echo "Python2 not found. Aborting..."
-			exit 1
-		fi
-		;;
-	esac
-else
-	echo "Please install Python 2.5 <= 2.7, then rerun this script."
-	exit 1
-fi
 PYTHON_VERSION=$($PYTHON --version 2>&1 | cut -d ' ' -f2 | cut -c 1-3)
 
 # Detect sha256 checksum binary
