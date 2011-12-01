@@ -344,13 +344,18 @@ unpack_all() {
                 echo "Aborting." >&2
                 exit 1 ;;
         esac
-	if [ ! `which bzip2` ]; then
+	if [ ! `which bzip2 2>/dev/null` ]; then
 		echo "bzip2 not found!"
 		echo "Please install bzip2 then re-run this script."
 		exit 1
 	fi
 
-        tar -x ${filter_opt} -vf "${pkg}"
+	if [ ! `which tar 2>/dev/null` ]; then
+		echo "tar not found!"
+		echo "Please install tar then re-run this script."
+	fi
+
+        tar -x ${tar_filter_opt} -vf "${pkg}" || echo "Extraction failed."
     done
 
     mkdir -p "${TAHOE_DEPS_DIR}"
