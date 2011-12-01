@@ -174,6 +174,7 @@ build_foolscap() {
 
     echo
     echo ">>> Building foolscap"
+    echo ">>>>> Note: You can ignore most C++ warnings."
     echo
 
     $PYTHON setup.py build || exit 1
