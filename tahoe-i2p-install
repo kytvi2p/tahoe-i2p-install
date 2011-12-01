@@ -17,27 +17,24 @@
 #     agree to release the work into the public domain) and if they're sane
 #     enough they'll be included in the next release.
 #
-# If the --fetch-patches-i2p option is used then I2P must be installed and
-# running locally with its HTTP Proxy enabled, and the base directory of your
-# I2P installation must be in the PATH environment variable.
 
 
 # Release-specific metadata
 
-INSTALLER_VERSION="1.0"
+INSTALLER_VERSION="1.1"
 
-FOOLSCAP_VERSION="0.5.0"
+FOOLSCAP_VERSION="0.6.0"
 FOOLSCAP_PATCH_REVISION="r0"
-FOOLSCAP_PATCH_SHA256="c5427043495cc115ac5663082e74ca293ce12c0479f1c1f1ac1113fa5df30afd"
-FOOLSCAP_SHA256="27521127a80e13ec97f58b1531b4740029ba3a4b5f0fea3c4af428d2b6e7db5c"
+FOOLSCAP_PATCH_SHA256="bce3dbc45a1602a8b490f3b6167296185e0c0a5eaf66d853d5e2a6d8f3bf3bc4"
+FOOLSCAP_SHA256="ec5d3992640d50fff72a1b12449329791eab31f29a18792ba6d8c8c617163e13"
 
-TAHOE_DEPS_VERSION="10"
-TAHOE_DEPS_SHA256="dc3eb7a7786b53e6740a30521b8e96eedff7a59e2f004e997714bd6a3145f731"
+TAHOE_DEPS_VERSION="17"
+TAHOE_DEPS_SHA256="d9bfe7bc4f008b1b360698b28ef2ac39bbd29affe37e5777a55aa67848f04587"
 
-TAHOE_LAFS_VERSION="1.6.1"
+TAHOE_LAFS_VERSION="1.8.1"
 TAHOE_LAFS_PATCH_REVISION="r0"
-TAHOE_LAFS_PATCH_SHA256="7796fcad13a0db7cc20edeeb0141bc4af1c64c40e9aa2c94c6ff8bcc4229a988"
-TAHOE_LAFS_SHA256="ea184eb8e60fb7adcac5fd7547267a296f5bbc520e3d204f28f79d61bc42e008"
+TAHOE_LAFS_PATCH_SHA256="01922193397505eb1a2021380cd1cb583b5f79640279eef5541e90a3a0e34ee2"
+TAHOE_LAFS_SHA256="def195f055d55de8e847bebdb3dd66664dbc28be8ab765b7c98ae1e7a1a25ad8"
 
 # Fetch locations
 
@@ -50,11 +47,11 @@ FOOLSCAP_PATCH="foolscap-i2p-${FOOLSCAP_VERSION}-${FOOLSCAP_PATCH_REVISION}.patc
 FOOLSCAP_HOME="http://foolscap.lothar.com/releases"
 
 TAHOE_DEPS_PKG="tahoe-deps-v${TAHOE_DEPS_VERSION}"
-TAHOE_DEPS_PKG_EXTENSION=".tar.gz"
+TAHOE_DEPS_PKG_EXTENSION=".tar.bz2"
 TAHOE_DEPS_HOME="http://tahoe-lafs.org/source/tahoe-lafs/deps"
 
 TAHOE_LAFS_PKG="allmydata-tahoe-${TAHOE_LAFS_VERSION}"
-TAHOE_LAFS_PKG_EXTENSION=".tar.gz"
+TAHOE_LAFS_PKG_EXTENSION=".tar.bz2"
 TAHOE_LAFS_PATCH="tahoe-lafs-i2p-${TAHOE_LAFS_VERSION}-${TAHOE_LAFS_PATCH_REVISION}.patch"
 TAHOE_LAFS_HOME="http://tahoe-lafs.org/source/tahoe-lafs/releases"
 
@@ -151,20 +148,10 @@ fetch_packages() {
 
     for p in "${FOOLSCAP_PATCH}" "${TAHOE_LAFS_PATCH}" ; do
 
-        if [[ -f ${p} ]] ; then
-            echo
-            echo "${p} exists, skipping."
-            echo
-            continue
-        fi
-
-        if [[ -n ${opt_fetch_patches_i2p} ]] ; then
-            eepget ${opt_http_proxy:+-p $opt_http_proxy} \
-                -o "${p}" \
-                "${PATCH_HOME_I2P}/${p}"
-            rm -rf "${WORKING_DIR}/logs"
+        if [[ -n ${opt_no_proxy} ]] ; then
+            wget -c --no-proxy "${PATCH_HOME_WWW}/${p}"
         else
-            wget -O "${p}" "${PATCH_HOME_WWW}/${p}"
+            wget -c "${PATCH_HOME_I2P}/${p}"
         fi
 
         if [[ $? -gt 0 ]] ; then
@@ -183,15 +170,11 @@ fetch_packages() {
 
     while [[ -n "$@" ]] ; do
 
-        if [[ -f ${2}${3} ]] ; then
-            echo
-            echo "${2}${3} exists, skipping."
-            echo
-            shift 3
-            continue
+        if [[ -n ${opt_no_proxy} ]] ; then
+            wget -c --no-proxy "${1}/${2}${3}"
+        else
+            wget -c "${1}/${2}${3}"
         fi
-
-        wget "${1}/${2}${3}"
 
         if [[ $? -gt 0 ]] ; then
             echo
@@ -251,6 +234,8 @@ unpack_all() {
         tar -x ${filter_opt} -vf "${pkg}"
     done
 
+    mkdir -p "${TAHOE_DEPS_DIR}"
+
     # This foolscap is replaced with our I2P-patched version
     rm -f "${TAHOE_DEPS_DIR}"/foolscap*
 
@@ -261,16 +246,26 @@ usage() {
     echo "Usage: tahoe-i2p-install [OPTIONS]"
     cat << EOF
 
-Build and install tahoe-lafs-i2p in the current directory.
+Builds and installs tahoe-lafs-i2p in the current directory.
+
+By default this attempts to download all required packages and patches
+anonymously using an I2P HTTP proxy listening on 127.0.0.1:4444. A different
+address:port pair can be specified with the --http_proxy option. This must be
+an I2P HTTP proxy; Tor proxies won't work. If the environment variables
+HTTP_PROXY or http_proxy are set in your shell they will be ignored.
+
+For faster, non-anonymous downloads specify --no-proxy and the normal Web will
+be used. If all required packages and patches already exist in the current
+directory, specify --no-fetch.
 
 Options:
-  -d, --make-dist            create distributable package
-  -h, --help                 show usage information and exit
-  -i, --fetch-patches-i2p    fetch patches (but not packages) via I2P HTTP Poxy
-  -n, --no-fetch             don't attempt to fetch anything
-  -p, --preserve-build-dirs  don't remove build dirs when done
-  -v, --version              show version information and exit
-  -x, --http-proxy IP:PORT   use nonstandard address:port for I2P HTTP Poxy
+  -d, --make-dist             create distributable archive
+  -h, --help                  show usage information and exit
+  -k, --keep-build-dirs       don't remove build directories when done
+  -n, --no-proxy              don't use proxy for fetching [NOT anonymous!]
+  -p, --http_proxy ADDR:PORT  use the I2P HTTP proxy listening at address:port
+  -v, --version               show version information and exit
+  -x, --no-fetch              do networkless install; don't download anything
 EOF
     exit 0
 }
@@ -325,16 +320,17 @@ while [[ $# > 0 ]] ; do
         -h|--help)
             usage ;;
 
-        -i|--fetch-patches-i2p)
-            opt_fetch_patches_i2p=1
+        -k|--keep-build-dirs)
+            opt_keep_build_dirs=1
             shift ;;
 
-        -n|--no-fetch)
-            opt_no_fetch=1
+        -n|--no-proxy)
+            opt_no_proxy=1
             shift ;;
 
-        -p|--preserve-build-dirs)
-            opt_preserve_build_dirs=1
+        -p|--http-proxy)
+            shift
+            opt_http_proxy=${1}
             shift ;;
 
         -v|--version)
@@ -353,9 +349,8 @@ while [[ $# > 0 ]] ; do
             echo
             exit 0 ;;
 
-        -x|--http-proxy)
-            shift
-            opt_http_proxy=${1}
+        -x|--no-fetch)
+            opt_no_fetch=1
             shift ;;
 
         -*)
@@ -371,6 +366,10 @@ done
 # Always start with clean build dirs
 clean_build_dirs
 
+if [[ -z ${opt_no_proxy} ]] ; then
+    export http_proxy=${opt_http_proxy:-127.0.0.1:4444}
+fi
+
 [[ -z ${opt_no_fetch} ]] && fetch_packages
 
 verify_hashes
@@ -381,7 +380,7 @@ build_tahoe_lafs
 
 [[ -d ${INSTALL_DIR} ]] && rm -rf "${INSTALL_DIR}"
 
-if [[ -z ${opt_preserve_build_dirs} ]] ; then
+if [[ -z ${opt_keep_build_dirs} ]] ; then
     mv -f "${TAHOE_LAFS_DIR}" "${INSTALL_DIR}"
     clean_build_dirs
 else
