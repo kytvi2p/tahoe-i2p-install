@@ -8,7 +8,7 @@
 # Requirements:
 #
 # - *BSD/Linux/Mac OS X/Solaris:
-#     Bash or Zsh, GCC, Python 2.5 or 2.6 (not 3.x), Wget
+#     Bash or Zsh, GCC, Python 2.5, 2.6, or 2.7 (not 3.x), Wget, curl, or aria
 #
 # - Windows:
 #     Unsupported, but same as above plus MinGW or Cygwin and probably lots of
