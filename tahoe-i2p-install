@@ -476,11 +476,21 @@ if [[ -z ${opt_keep_build_dirs} ]] ; then
     mv -f "${TAHOE_LAFS_DIR}" "${INSTALL_DIR}"
     clean_build_dirs
 else
-    cp -a "${TAHOE_LAFS_DIR}" "${INSTALL_DIR}"
+    mkdir -p ${INSTALL_DIR}
+    cd "${TAHOE_LAFS_DIR}"
+    tar cf - .| (cd "${INSTALL_DIR}" ; tar xf -)
+
 fi
 
-sed -i -e "s|${TAHOE_LAFS_DIR}/src|${INSTALL_DIR}/src|" \
-    "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/allmydata-tahoe.egg-link" \
+sed -e "s|${TAHOE_LAFS_DIR}/src|${INSTALL_DIR}/src|" \
+    "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/allmydata-tahoe.egg-link" > \
+    "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/allmydata-tahoe.egg-link.tmp"
+sed -e "s|${TAHOE_LAFS_DIR}/src|${INSTALL_DIR}/src|" \
+    "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/easy-install.pth" > \
+    "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/easy-install.pth.tmp"
+mv  "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/allmydata-tahoe.egg-link.tmp" \
+    "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/allmydata-tahoe.egg-link"
+mv  "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/easy-install.pth.tmp" \
     "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/easy-install.pth"
 
 echo
