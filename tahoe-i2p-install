@@ -87,6 +87,8 @@ if [[ $? -gt 0 ]] ; then
     SHA256_BIN=`type -P sha256`
     if [[ $? -eq 0 ]] ; then
         SHA256_BIN="${SHA256_BIN} -r"
+    elif [ `which shasum` ]; then
+        SHA256_BIN="shasum -a256"
     else
         echo
         echo "Error: Failed to locate sha256 checksum binary. Aborting." >&2
