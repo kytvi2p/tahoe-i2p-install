@@ -105,17 +105,19 @@ fi
 # for aria2c. If aria2c is not found, we fallback to curl. If curl is not
 # available, we exit.
 
-if [ `which wget` ]; then
-	export DOWNLOADWITH="wget"
-elif [ `which aria2c` ]; then
-	export DOWNLOADWITH="aria2c"
-elif [ `which curl` ]; then
-	export DOWNLOADWITH="curl"
+if [ `which wget 2>/dev/null` ]; then
+    export DOWNLOADWITH="wget"
+elif [ `which fetch 2>/dev/null` ]; then
+    export DOWNLOADWITH="fetch"
+elif [ `which aria2c 2>/dev/null` ]; then
+    export DOWNLOADWITH="aria2c"
+elif [ `which curl 2>/dev/null` ]; then
+    export DOWNLOADWITH="curl"
 else
-	echo "Neither wget, aria2c, nor curl were found"
-	echo "Install either of these tools (wget preferred)"
-	echo "and re-run this script."
-	exit 1
+    echo "Neither wget, aria2c, nor curl were found"
+    echo "Install either of these tools (wget preferred)"
+    echo "and re-run this script."
+    exit 1
 fi
 
 apply_patches() {
@@ -203,23 +205,27 @@ fetch_packages() {
     for p in "${FOOLSCAP_PATCH}" "${TAHOE_LAFS_PATCH}" ; do
 
         if [[ -n ${opt_no_proxy} ]] ; then
-		if [ $DOWNLOADWITH = "wget" ]; then
-            		wget -c --no-proxy "${PATCH_HOME_WWW}/${p}"
-		elif [ $DOWNLOADWITH = "aria2c" ]; then
-            		aria2c --all-proxy "" "${PATCH_HOME_WWW}/${p}"
-		else
-			echo; echo "Downloading ${PATCH_HOME_WWW}/${p}"
-			curl -OL -x "" "${PATCH_HOME_WWW}/${p}"
-		fi
+        if [ $DOWNLOADWITH = "wget" ]; then
+                    wget -c --no-proxy "${PATCH_HOME_WWW}/${p}"
+        elif [ $DOWNLOADWITH = "fetch" ]; then
+                    fetch -a -m -d "${PATCH_HOME_WWW}/${p}"
+        elif [ $DOWNLOADWITH = "aria2c" ]; then
+                    aria2c --all-proxy "" "${PATCH_HOME_WWW}/${p}"
         else
-		if [ $DOWNLOADWITH = "wget" ]; then
-            		wget -c "${PATCH_HOME_I2P}/${p}"
-		elif [ $DOWNLOADWITH = "aria2c" ]; then
-            		aria2c "${PATCH_HOME_I2P}/${p}"
-		else
-			echo; echo "Downloading from ${PATCH_HOME_I2P}/${p}"
-			curl -OL "${PATCH_HOME_I2P}/${p}"
-		fi
+            echo; echo "Downloading ${PATCH_HOME_WWW}/${p}"
+            curl -OL -x "" "${PATCH_HOME_WWW}/${p}"
+        fi
+        else
+        if [ $DOWNLOADWITH = "wget" ]; then
+                    wget -c "${PATCH_HOME_I2P}/${p}"
+        elif [ $DOWNLOADWITH = "fetch" ]; then
+                    fetch -a -m "${PATCH_HOME_I2P}/${p}"
+        elif [ $DOWNLOADWITH = "aria2c" ]; then
+                    aria2c "${PATCH_HOME_I2P}/${p}"
+        else
+            echo; echo "Downloading from ${PATCH_HOME_I2P}/${p}"
+            curl -OL "${PATCH_HOME_I2P}/${p}"
+        fi
         fi
 
         if [[ $? -gt 0 ]] ; then
@@ -239,23 +245,27 @@ fetch_packages() {
     while [[ -n "$@" ]] ; do
 
         if [[ -n ${opt_no_proxy} ]] ; then
-		if [ $DOWNLOADWITH = "wget" ]; then
-            		wget -c --no-proxy "${1}/${2}${3}"
-		elif [ $DOWNLOADWITH = "aria2c" ]; then
-            		aria2c --all-proxy "" "${1}/${2}${3}"
-		else
-			echo; echo "Downloading from ${1}/${2}${3}"
-			curl -OL -x "" "${1}/${2}${3}"
-		fi
+        if [ $DOWNLOADWITH = "wget" ]; then
+                    wget -c --no-proxy "${1}/${2}${3}"
+        elif [ $DOWNLOADWITH = "fetch" ]; then
+                    fetch -d -a -m  "${1}/${2}${3}"
+        elif [ $DOWNLOADWITH = "aria2c" ]; then
+                    aria2c --all-proxy "" "${1}/${2}${3}"
         else
-		if [ $DOWNLOADWITH = "wget" ]; then
-            		wget -c "${1}/${2}${3}"
-		elif [ $DOWNLOADWITH = "aria2c" ]; then
-            		aria2c "${1}/${2}${3}"
-		else
-			echo; echo "Downloading from ${1}/${2}${3}"
-			curl -OL "${1}/${2}${3}"
-		fi
+            echo; echo "Downloading from ${1}/${2}${3}"
+            curl -OL -x "" "${1}/${2}${3}"
+        fi
+        else
+        if [ $DOWNLOADWITH = "wget" ]; then
+                    wget -c "${1}/${2}${3}"
+        elif [ $DOWNLOADWITH = "fetch" ]; then
+                    fetch -a -m "${1}/${2}${3}"
+        elif [ $DOWNLOADWITH = "aria2c" ]; then
+                    aria2c "${1}/${2}${3}"
+        else
+            echo; echo "Downloading from ${1}/${2}${3}"
+            curl -OL "${1}/${2}${3}"
+        fi
         fi
 
         if [[ $? -gt 0 ]] ; then
