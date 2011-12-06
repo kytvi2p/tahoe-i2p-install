@@ -553,4 +553,4 @@ echo
 echo "  export PATH=\"${INSTALL_DIR}/bin:\${PATH}\""
 echo "  export PYTHONPATH=\"${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages:\${PYTHONPATH}\""
 echo
-
+# vim:fenc=utf-8:ai:si:ts=4:sw=4:et:nu:fdm=indent:fdn=1
