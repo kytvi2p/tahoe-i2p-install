@@ -340,10 +340,9 @@ usage() {
 Builds and installs tahoe-lafs-i2p in the current directory.
 
 By default this attempts to download all required packages and patches
-anonymously using an I2P HTTP proxy listening on 127.0.0.1:4444. A different
-address:port pair can be specified with the --http_proxy option. This must be
-an I2P HTTP proxy; Tor proxies won't work. If the environment variables
-HTTP_PROXY or http_proxy are set in your shell they will be ignored.
+anonymously using an I2P HTTP proxy listening on 127.0.0.1:4444. The default
+proxy location can be overridden with the http_proxy environment variable, but
+any used proxies must be an I2P HTTP proxy; Tor proxies won't work.
 
 For faster, non-anonymous downloads specify --no-proxy and the normal Web will
 be used. If all required packages and patches already exist in the current
@@ -354,8 +353,6 @@ Options:
   -h, --help                  show usage information and exit
   -k, --keep-build-dirs       don't remove build directories when done
   -n, --no-proxy              don't use proxy for fetching [NOT anonymous!]
-  -p, --http_proxy ADDR:PORT  use the I2P HTTP proxy listening on a
-                              non-default address:port
   -v, --version               show version information and exit
   -x, --no-fetch              do networkless install; don't download anything
 EOF
@@ -422,9 +419,13 @@ while [[ $# > 0 ]] ; do
             shift ;;
 
         -p|--http-proxy)
-            shift
-            opt_http_proxy=${1}
-            shift ;;
+            echo "ERROR: Specifying the proxy with the \"-p\" or \"--http-proxy\"" >&2
+            echo "parameters is no longer supported." >&2
+            echo >&2
+            echo "Please set the environment variables \"http_proxy\" and/or \"https_proxy\"" >&2
+            echo "and re-run this script." >&2
+            exit 1
+            ;;
 
         -v|--version)
             echo "tahoe-i2p-install version ${INSTALLER_VERSION}"
@@ -465,9 +466,9 @@ done
 # Always start with clean build dirs
 clean_build_dirs
 
-if [[ -z ${opt_no_proxy} ]] ; then
-    export http_proxy=${opt_http_proxy:-127.0.0.1:4444}
-fi
+: ${http_proxy:="127.0.0.1:4444"}
+: ${https_proxy:="127.0.0.1:4445"}
+export http_proxy https_proxy
 
 [[ -z ${opt_no_fetch} ]] && fetch_packages
 
