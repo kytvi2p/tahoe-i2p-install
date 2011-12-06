@@ -67,9 +67,9 @@ TAHOE_LAFS_DIR="${WORKING_DIR}/${TAHOE_LAFS_PKG:-tahoe-lafs-src}"
 if [ -f /etc/arch-release ]; then
     export PYCRYPTOPP_DISABLE_EMBEDDED_CRYPTOPP=1
         if [ ! -e /sbin/ifconfig ]; then
-                echo "The current version of Tahoe-LAFS requires ifconfig"
-                echo "and this tool is deprecated in ArchLinux. Please install"
-                echo "the net-tools package and re-run this script."
+                echo "ERROR: The current version of Tahoe-LAFS requires ifconfig" >&2
+                echo "       and this tool is deprecated in ArchLinux. Please install" >&2
+                echo "       the net-tools package and re-run this script." >&2
                 exit 1
         fi
 fi
@@ -82,8 +82,8 @@ if [ $PYTHON_VERSION != "2.5" ] &&
         [ $PYTHON_VERSION != "2.7" ]; then
         echo "ERROR: Python $PYTHON_VERSION is not supported." >&2
         echo >&2
-        echo "If you have Python 2.x on your system, set the environment" >&2
-        echo "variable PYTHON to the correct python binary." >&2
+        echo "       If you have Python 2.x on your system, set the environment" >&2
+        echo "       variable PYTHON to the correct python binary." >&2
         echo >&2
         echo "For example, if the correct binary is called \"python2\"" >&2
         echo "re-run this script with PYTHON=\"python2\" $0 $@" >&2
@@ -103,9 +103,9 @@ elif [ $(uname -s |tr [A-Z] [a-z]) = "netbsd" ]; then
 elif [ $(which shasum) ]; then
         SHA256_BIN="shasum -a256"
 else
-        echo
+        echo >&2
         echo "Error: Failed to locate sha256 checksum binary. Aborting." >&2
-        echo
+        echo >&2
         exit 1
 fi
 
@@ -122,9 +122,8 @@ elif [ $(which aria2c) ]; then
 elif [ $(which curl) ]; then
     export DOWNLOADWITH="curl"
 else
-    echo "Neither wget, aria2c, nor curl were found"
-    echo "Install either of these tools (wget preferred)"
-    echo "and re-run this script."
+    echo "ERROR: Neither wget, fetch aria2c, nor curl were found!" >&2
+    echo "       Install either of these tools and re-run this script." >&2
     exit 1
 fi
 
@@ -145,7 +144,7 @@ apply_patches() {
         if [[ $? -gt 0 ]] ; then
             echo
             echo "Error: Failed to apply patch. Aborting." >&2
-            echo
+            echo >&2
             exit 1
         fi
 
@@ -241,7 +240,7 @@ fetch_packages() {
             echo
             echo "Error: Failed to download patch. Try fetching it manually and run" >&2
             echo "tahoe-i2p-install again. Aborting." >&2
-            echo
+            echo >&2
             exit 1
         fi
 
@@ -323,17 +322,17 @@ unpack_all() {
                 exit 1 ;;
         esac
         if [ ! $(which bzip2) ]; then
-                echo "bzip2 not found!"
-                echo "Please install bzip2 then re-run this script."
+                echo "bzip2 not found!" >&2
+                echo "Please install bzip2 then re-run this script." >&2
                 exit 1
         fi
 
         if [ ! $(which tar) ]; then
-                echo "tar not found!"
-                echo "Please install tar then re-run this script."
+                echo "tar not found!" >&2
+                echo "Please install tar then re-run this script." >&2
         fi
 
-        tar -x ${tar_filter_opt} -vf "${pkg}" || echo "Extraction failed."
+        tar -x ${tar_filter_opt} -vf "${pkg}" || echo "Extraction failed." >&2
     done
 
     mkdir -p "${TAHOE_DEPS_DIR}"
@@ -393,13 +392,13 @@ verify_hashes() {
         if [[ ${sha256} == ${2} ]] ; then
             echo "OK"
         else
-            echo "FAILED"
-            echo
-            echo "Expected hash: ${2}"
-            echo "Computed hash: ${sha256}"
-            echo
+            echo "FAILED" >&2
+            echo >&2
+            echo "Expected hash: ${2}" >&2
+            echo "Computed hash: ${sha256}" >&2
+            echo >&2
             echo "Error: A package or patch failed its hash check. Aborting." >&2
-            echo
+            echo >&2
             exit 1
         fi
 
