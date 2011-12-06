@@ -202,29 +202,29 @@ fetch_packages() {
 
     for p in "${FOOLSCAP_PATCH}" "${TAHOE_LAFS_PATCH}" ; do
 
-        if [[ -n ${opt_no_proxy} ]] ; then
-        if [ $DOWNLOADWITH = "wget" ]; then
-                    wget -c --no-proxy "${PATCH_HOME_WWW}/${p}"
-        elif [ $DOWNLOADWITH = "fetch" ]; then
-                    fetch -a -m -d "${PATCH_HOME_WWW}/${p}"
-        elif [ $DOWNLOADWITH = "aria2c" ]; then
-                    aria2c --all-proxy "" "${PATCH_HOME_WWW}/${p}"
-        else
-            echo; echo "Downloading ${PATCH_HOME_WWW}/${p}"
-            curl -OL -x "" "${PATCH_HOME_WWW}/${p}"
-        fi
-        else
-        if [ $DOWNLOADWITH = "wget" ]; then
-                    wget -c "${PATCH_HOME_I2P}/${p}"
-        elif [ $DOWNLOADWITH = "fetch" ]; then
-                    fetch -a -m "${PATCH_HOME_I2P}/${p}"
-        elif [ $DOWNLOADWITH = "aria2c" ]; then
-                    aria2c "${PATCH_HOME_I2P}/${p}"
-        else
-            echo; echo "Downloading from ${PATCH_HOME_I2P}/${p}"
-            curl -OL "${PATCH_HOME_I2P}/${p}"
-        fi
-        fi
+            if [[ -n ${opt_no_proxy} ]] ; then
+                    if [ $DOWNLOADWITH = "wget" ]; then
+                            wget -c --no-proxy "${PATCH_HOME_WWW}/${p}"
+                    elif [ $DOWNLOADWITH = "fetch" ]; then
+                            fetch -a -m -d "${PATCH_HOME_WWW}/${p}"
+                    elif [ $DOWNLOADWITH = "aria2c" ]; then
+                            aria2c --all-proxy "" "${PATCH_HOME_WWW}/${p}"
+                    else
+                            echo; echo "Downloading ${PATCH_HOME_WWW}/${p}"
+                            curl -OL -x "" "${PATCH_HOME_WWW}/${p}"
+                    fi
+            else
+                    if [ $DOWNLOADWITH = "wget" ]; then
+                            wget -c "${PATCH_HOME_I2P}/${p}"
+                    elif [ $DOWNLOADWITH = "fetch" ]; then
+                            fetch -a -m "${PATCH_HOME_I2P}/${p}"
+                    elif [ $DOWNLOADWITH = "aria2c" ]; then
+                            aria2c "${PATCH_HOME_I2P}/${p}"
+                    else
+                            echo; echo "Downloading from ${PATCH_HOME_I2P}/${p}"
+                            curl -OL "${PATCH_HOME_I2P}/${p}"
+                    fi
+            fi
 
         if [[ $? -gt 0 ]] ; then
             echo
@@ -236,24 +236,16 @@ fetch_packages() {
 
     done
 
+        if [ ${opt_no_proxy} ] ; then
+                unset http_proxy https_proxy
+        fi
+
     set "${FOOLSCAP_HOME}" "${FOOLSCAP_PKG}" "${FOOLSCAP_PKG_EXTENSION}" \
         "${TAHOE_DEPS_HOME}" "${TAHOE_DEPS_PKG}" "${TAHOE_DEPS_PKG_EXTENSION}" \
         "${TAHOE_LAFS_HOME}" "${TAHOE_LAFS_PKG}" "${TAHOE_LAFS_PKG_EXTENSION}"
 
     while [[ -n "$@" ]] ; do
 
-        if [[ -n ${opt_no_proxy} ]] ; then
-        if [ $DOWNLOADWITH = "wget" ]; then
-                    wget -c --no-proxy "${1}/${2}${3}"
-        elif [ $DOWNLOADWITH = "fetch" ]; then
-                    fetch -d -a -m  "${1}/${2}${3}"
-        elif [ $DOWNLOADWITH = "aria2c" ]; then
-                    aria2c --all-proxy "" "${1}/${2}${3}"
-        else
-            echo; echo "Downloading from ${1}/${2}${3}"
-            curl -OL -x "" "${1}/${2}${3}"
-        fi
-        else
         if [ $DOWNLOADWITH = "wget" ]; then
                     wget -c "${1}/${2}${3}"
         elif [ $DOWNLOADWITH = "fetch" ]; then
@@ -263,7 +255,6 @@ fetch_packages() {
         else
             echo; echo "Downloading from ${1}/${2}${3}"
             curl -OL "${1}/${2}${3}"
-        fi
         fi
 
         if [[ $? -gt 0 ]] ; then
@@ -427,6 +418,7 @@ while [[ $# > 0 ]] ; do
 
         -n|--no-proxy)
             opt_no_proxy=1
+            unset http_proxy https_proxy
             shift ;;
 
         -p|--http-proxy)
