@@ -92,36 +92,34 @@ fi
 
 # Detect sha256 checksum binary
 
-SHA256_BIN=`type -P sha256sum`
-if [[ $? -gt 0 ]] ; then
-    SHA256_BIN=`type -P sha256`
-    if [[ $? -eq 0 ]] ; then
-        SHA256_BIN="${SHA256_BIN} -r"
-    elif [ `uname -s |tr [A-Z] [a-z]` = "netbsd" ]; then
-    if [ `which cksum 2> /dev/null` ]; then
-        SHA256_BIN="cksum -a sha256 -n"
-    fi
-    elif [ `which shasum 2>/dev/null` ]; then
+if [ $(which sha256sum) ]; then
+        SHA256_BIN="sha256sum"
+elif [ $(which sha256) ]; then
+        SHA256_BIN="sha256 -r"
+elif [ $(uname -s |tr [A-Z] [a-z]) = "netbsd" ]; then
+        if [ $(which cksum) ]; then
+                SHA256_BIN="cksum -a sha256 -n"
+        fi
+elif [ $(which shasum) ]; then
         SHA256_BIN="shasum -a256"
-    else
+else
         echo
         echo "Error: Failed to locate sha256 checksum binary. Aborting." >&2
         echo
         exit 1
-    fi
 fi
 
 # We default to downloading with wget. If wget is not found, we look
 # for aria2c. If aria2c is not found, we fallback to curl. If curl is not
 # available, we exit.
 
-if [ `which wget 2>/dev/null` ]; then
+if [ $(which wget) ]; then
     export DOWNLOADWITH="wget"
-elif [ `which fetch 2>/dev/null` ]; then
+elif [ $(which fetch) ]; then
     export DOWNLOADWITH="fetch"
-elif [ `which aria2c 2>/dev/null` ]; then
+elif [ $(which aria2c) ]; then
     export DOWNLOADWITH="aria2c"
-elif [ `which curl 2>/dev/null` ]; then
+elif [ $(which curl) ]; then
     export DOWNLOADWITH="curl"
 else
     echo "Neither wget, aria2c, nor curl were found"
@@ -324,13 +322,13 @@ unpack_all() {
                 echo "Aborting." >&2
                 exit 1 ;;
         esac
-        if [ ! `which bzip2 2>/dev/null` ]; then
+        if [ ! $(which bzip2) ]; then
                 echo "bzip2 not found!"
                 echo "Please install bzip2 then re-run this script."
                 exit 1
         fi
 
-        if [ ! `which tar 2>/dev/null` ]; then
+        if [ ! $(which tar) ]; then
                 echo "tar not found!"
                 echo "Please install tar then re-run this script."
         fi
