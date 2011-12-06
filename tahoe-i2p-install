@@ -66,12 +66,12 @@ TAHOE_LAFS_DIR="${WORKING_DIR}/${TAHOE_LAFS_PKG:-tahoe-lafs-src}"
 
 if [ -f /etc/arch-release ]; then
     export PYCRYPTOPP_DISABLE_EMBEDDED_CRYPTOPP=1
-	if [ ! -e /sbin/ifconfig ]; then
-		echo "The current version of Tahoe-LAFS requires ifconfig"
-		echo "and this tool is deprecated in ArchLinux. Please install"
-		echo "the net-tools package and re-run this script."
-		exit 1
-	fi
+        if [ ! -e /sbin/ifconfig ]; then
+                echo "The current version of Tahoe-LAFS requires ifconfig"
+                echo "and this tool is deprecated in ArchLinux. Please install"
+                echo "the net-tools package and re-run this script."
+                exit 1
+        fi
 fi
 
 PYTHON="python"
@@ -311,16 +311,16 @@ unpack_all() {
                 echo "Aborting." >&2
                 exit 1 ;;
         esac
-	if [ ! `which bzip2 2>/dev/null` ]; then
-		echo "bzip2 not found!"
-		echo "Please install bzip2 then re-run this script."
-		exit 1
-	fi
+        if [ ! `which bzip2 2>/dev/null` ]; then
+                echo "bzip2 not found!"
+                echo "Please install bzip2 then re-run this script."
+                exit 1
+        fi
 
-	if [ ! `which tar 2>/dev/null` ]; then
-		echo "tar not found!"
-		echo "Please install tar then re-run this script."
-	fi
+        if [ ! `which tar 2>/dev/null` ]; then
+                echo "tar not found!"
+                echo "Please install tar then re-run this script."
+        fi
 
         tar -x ${tar_filter_opt} -vf "${pkg}" || echo "Extraction failed."
     done
@@ -441,12 +441,12 @@ while [[ $# > 0 ]] ; do
             echo "  ${TAHOE_LAFS_PATCH}"
             echo "  ${FOOLSCAP_PATCH}"
             echo
-	    echo
-	    echo "Downloads will be performed using $DOWNLOADWITH"
-	    echo "and checksums will be verified with"
-	    echo "$SHA256_BIN"
-	    echo
-	    echo "Python version $PYTHON_VERSION detected."
+            echo
+            echo "Downloads will be performed using $DOWNLOADWITH"
+            echo "and checksums will be verified with"
+            echo "$SHA256_BIN"
+            echo
+            echo "Python version $PYTHON_VERSION detected."
             exit 0 ;;
 
         -x|--no-fetch)
