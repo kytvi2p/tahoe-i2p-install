@@ -1,14 +1,17 @@
-#!/usr/bin/env bash
-
+#!/bin/sh
+#
 # tahoe-i2p-install - Install self-contained I2P mod of Tahoe-LAFS
 #
-# Author:  smeghead <smeghead@mail.i2p> <smeghead@i2pmail.org>
+# Authors:  smeghead <smeghead@mail.i2p> <smeghead@i2pmail.org>
+#           duck <duck@mail.i2p> <duck@i2pmail.org>
+#           killyourtv <killyourtv@mail.i2p> <killyourtv@i2pmail.org>
+#
 # License: public domain
 #
 # Requirements:
 #
 # - *BSD/Linux/Mac OS X/Solaris:
-#     Bash or Zsh, GCC, Python 2.5, 2.6, or 2.7 (not 3.x), Wget, curl, or aria
+#     Bourne compatible shell, GCC, Python 2.5, 2.6, or 2.7 (not 3.x), wget, fetch, curl, or aria
 #
 # - Windows:
 #     Unsupported, but same as above plus MinGW or Cygwin and probably lots of
@@ -135,27 +138,29 @@ apply_patches() {
     set "${FOOLSCAP_DIR}" "${FOOLSCAP_PATCH}" \
         "${TAHOE_LAFS_DIR}" "${TAHOE_LAFS_PATCH}"
 
-    while [[ -n "$@" ]] ; do
+    stack="$@"
+    while [ -n "${stack}" ] ; do
 
-        pushd "${1}" &> /dev/null
+        cd "${1}"
 
         patch -p1 < "${WORKING_DIR}/${2}"
 
-        if [[ $? -gt 0 ]] ; then
-            echo
+        if [ $? -gt 0 ] ; then
+            echo >&2
             echo "Error: Failed to apply patch. Aborting." >&2
             echo >&2
             exit 1
         fi
 
-        popd &> /dev/null
+        cd "$OLDPWD"
 
         shift 2
+        stack="$@"
     done
 }
 
 build_foolscap() {
-    pushd "${FOOLSCAP_DIR}" &> /dev/null
+    cd "${FOOLSCAP_DIR}"
 
     echo
     echo ">>> Building foolscap"
@@ -166,11 +171,11 @@ build_foolscap() {
     $PYTHON setup.py sdist || exit 1
     cp -f dist/* "${TAHOE_DEPS_DIR}"
 
-    popd &> /dev/null
+    cd "$OLDPWD"
 }
 
 build_tahoe_lafs() {
-    pushd "${TAHOE_LAFS_DIR}" &> /dev/null
+    cd "${TAHOE_LAFS_DIR}"
 
     echo
     echo ">>> Building tahoe-lafs"
@@ -179,7 +184,7 @@ build_tahoe_lafs() {
     mkdir -p "${TAHOE_LAFS_DIR}/support/lib/python${PYTHON_VERSION}/site-packages"
     export PYTHONPATH="${TAHOE_LAFS_DIR}/support/lib/python${PYTHON_VERSION}/site-packages"
 
-    if [[ -n ${opt_make_dist} ]] ; then
+    if [ -n ${opt_make_dist} ] ; then
         $PYTHON setup.py build || exit 1
         $PYTHON setup.py bdist || exit 1
         cp -f dist/* "${WORKING_DIR}"
@@ -187,11 +192,11 @@ build_tahoe_lafs() {
         $PYTHON setup.py build || exit 1
     fi
 
-    popd &> /dev/null
+    cd "$OLDPWD"
 }
 
 clean_build_dirs() {
-    pushd "${WORKING_DIR}" &> /dev/null
+    cd "${WORKING_DIR}"
 
     echo
     echo ">>> Cleaning previously created build directories"
@@ -199,11 +204,11 @@ clean_build_dirs() {
 
     rm -rf "${FOOLSCAP_DIR}" "${TAHOE_DEPS_DIR}" "${TAHOE_LAFS_DIR}"
 
-    popd &> /dev/null
+    cd "$OLDPWD"
 }
 
 fetch_packages() {
-    pushd "${WORKING_DIR}" &> /dev/null
+    cd "${WORKING_DIR}"
 
     echo
     echo ">>> Fetching patches and packages"
@@ -212,7 +217,7 @@ fetch_packages() {
 
     for p in "${FOOLSCAP_PATCH}" "${TAHOE_LAFS_PATCH}" ; do
 
-            if [[ -n ${opt_no_proxy} ]] ; then
+            if [ ${opt_no_proxy} ] ; then
                     if [ $DOWNLOADWITH = "wget" ]; then
                             wget -c --no-proxy "${PATCH_HOME_WWW}/${p}"
                     elif [ $DOWNLOADWITH = "fetch" ]; then
@@ -236,8 +241,8 @@ fetch_packages() {
                     fi
             fi
 
-        if [[ $? -gt 0 ]] ; then
-            echo
+        if [ $? -gt 0 ] ; then
+            echo >&2
             echo "Error: Failed to download patch. Try fetching it manually and run" >&2
             echo "tahoe-i2p-install again. Aborting." >&2
             echo >&2
@@ -254,7 +259,8 @@ fetch_packages() {
         "${TAHOE_DEPS_HOME}" "${TAHOE_DEPS_PKG}" "${TAHOE_DEPS_PKG_EXTENSION}" \
         "${TAHOE_LAFS_HOME}" "${TAHOE_LAFS_PKG}" "${TAHOE_LAFS_PKG_EXTENSION}"
 
-    while [[ -n "$@" ]] ; do
+    stack="$@"
+    while [ -n "${stack}" ]; do
 
         if [ $DOWNLOADWITH = "wget" ]; then
                     wget -c "${1}/${2}${3}"
@@ -267,24 +273,25 @@ fetch_packages() {
             curl -OL "${1}/${2}${3}"
         fi
 
-        if [[ $? -gt 0 ]] ; then
-            echo
-            echo "Error: Failed to download package. Try fetching it manually and run" >&2
-            echo "tahoe-i2p-install again. Aborting." >&2
-            echo
+        if [ $? -gt 0 ] ; then
+            echo >&2
+            echo "ERROR: Failed to download package. Try fetching it manually and run" >&2
+            echo "       tahoe-i2p-install again. Aborting." >&2
+            echo >&2
             exit 1
         fi
 
         shift 3
+        stack="$@"
     done
 
-    popd &> /dev/null
+    cd "$OLDPWD"
 }
 
 unpack_all() {
     local tar_filter_opt
 
-    pushd "${WORKING_DIR}" &> /dev/null
+    cd "${WORKING_DIR}"
 
     echo
     echo ">>> Unpacking archives"
@@ -340,7 +347,7 @@ unpack_all() {
     # This foolscap is replaced with our I2P-patched version
     rm -f "${TAHOE_DEPS_DIR}"/foolscap*
 
-    popd &> /dev/null
+    cd "$OLDPWD"
 }
 
 usage() {
@@ -372,7 +379,7 @@ EOF
 verify_hashes() {
     local sha256
 
-    pushd "${WORKING_DIR}" &> /dev/null
+    cd "${WORKING_DIR}"
 
     echo
     echo ">>> Verifying SHA-256 sums"
@@ -384,12 +391,13 @@ verify_hashes() {
         "${TAHOE_DEPS_PKG}${TAHOE_DEPS_PKG_EXTENSION}" "${TAHOE_DEPS_SHA256}" \
         "${TAHOE_LAFS_PKG}${TAHOE_LAFS_PKG_EXTENSION}" "${TAHOE_LAFS_SHA256}"
 
-    while [[ -n "$@" ]] ; do
+    stack="$@"
+    while [ -n "${stack}" ] ; do
         echo -n "${1} ... "
 
         sha256=$(${SHA256_BIN} "${1}" | cut -d ' ' -f1)
 
-        if [[ ${sha256} == ${2} ]] ; then
+        if [ ${sha256} = ${2} ] ; then
             echo "OK"
         else
             echo "FAILED" >&2
@@ -403,13 +411,14 @@ verify_hashes() {
         fi
 
         shift 2
+        stack="$@"
     done
 
     echo
-    popd &> /dev/null
+    cd "$OLDPWD"
 }
 
-while [[ $# > 0 ]] ; do
+while [ $# -gt 0 ] ; do
     case "${1}" in
 
         -d|--make-dist)
@@ -505,7 +514,7 @@ trap - INT TERM EXIT
 # Always start with clean build dirs
 clean_build_dirs
 
-[[ -z ${opt_no_fetch} ]] && fetch_packages
+[ ! ${opt_no_fetch} ] && fetch_packages
 
 verify_hashes
 unpack_all
@@ -513,9 +522,9 @@ apply_patches
 build_foolscap
 build_tahoe_lafs
 
-[[ -d ${INSTALL_DIR} ]] && rm -rf "${INSTALL_DIR}"
+[ -d ${INSTALL_DIR} ] && rm -rf "${INSTALL_DIR}"
 
-if [[ -z ${opt_keep_build_dirs} ]] ; then
+if [ ! ${opt_keep_build_dirs} ] ; then
     mv -f "${TAHOE_LAFS_DIR}" "${INSTALL_DIR}"
     clean_build_dirs
 else
