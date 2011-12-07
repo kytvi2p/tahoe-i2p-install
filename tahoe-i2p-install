@@ -350,6 +350,21 @@ unpack_all() {
     cd "$OLDPWD"
 }
 
+print_urls () {
+            echo
+            echo "Files will be retrieved from"
+            echo
+            echo "  ${FOOLSCAP_HOME}/${FOOLSCAP_PKG}${FOOLSCAP_PKG_EXTENSION}"
+            echo "  ${TAHOE_LAFS_HOME}/${TAHOE_LAFS_PKG}${TAHOE_LAFS_PKG_EXTENSION}"
+            echo "  ${TAHOE_DEPS_HOME}/${TAHOE_DEPS_PKG}${TAHOE_DEPS_PKG_EXTENSION}"
+            echo "  ${PATCH_HOME_I2P}/${FOOLSCAP_PATCH}"
+            echo "  ${PATCH_HOME_I2P}/${TAHOE_LAFS_PATCH}"
+            echo
+            echo "If desired, you can download these files manully to $(pwd), and run"
+            echo "this script with the --no-fetch option."
+            exit 0
+}
+
 usage() {
     echo "Usage: tahoe-i2p-install [OPTIONS]"
     cat << EOF
@@ -372,6 +387,7 @@ Options:
   -n, --no-proxy              don't use proxy for fetching [NOT anonymous!]
   -v, --version               show version information and exit
   -x, --no-fetch              do networkless install; don't download anything
+      --print-urls            show download locations
 EOF
     exit 0
 }
@@ -446,6 +462,9 @@ while [ $# -gt 0 ] ; do
             exit 1
             ;;
 
+        -u|--print-urls|--print-uris)
+            print_urls
+            ;;
         -v|--version)
             echo "tahoe-i2p-install version ${INSTALLER_VERSION}"
             echo
