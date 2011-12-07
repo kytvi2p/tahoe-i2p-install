@@ -372,9 +372,10 @@ usage() {
 Builds and installs tahoe-lafs-i2p in the current directory.
 
 By default this attempts to download all required packages and patches
-anonymously using an I2P HTTP proxy listening on 127.0.0.1:4444. The default
-proxy location can be overridden with the http_proxy environment variable, but
-any used proxies must be an I2P HTTP proxy; Tor proxies won't work.
+anonymously using an I2P HTTP proxy listening on 127.0.0.1:4444 and an I2P
+HTTPS proxy on 127.0.0.1:4445. The default proxy locations can be overridden
+with the http_proxy & https_proxy environment variables, but any used proxies
+must be an I2P HTTP proxy; Tor proxies won't work.
 
 For faster, non-anonymous downloads specify --no-proxy and the normal Web will
 be used. If all required packages and patches already exist in the current
@@ -478,7 +479,6 @@ while [ $# -gt 0 ] ; do
             echo
             echo "  ${TAHOE_LAFS_PATCH}"
             echo "  ${FOOLSCAP_PATCH}"
-            echo
             echo
             echo "Downloads will be performed using $DOWNLOADWITH"
             echo "and checksums will be verified with"
