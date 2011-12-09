@@ -547,11 +547,11 @@ else
 fi
 
 sed -e "s|${TAHOE_LAFS_DIR}/src|${INSTALL_DIR}/src|" \
-    "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/allmydata-tahoe.egg-link" > \
-    "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/allmydata-tahoe.egg-link.tmp"
+         "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/allmydata-tahoe.egg-link" > \
+         "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/allmydata-tahoe.egg-link.tmp"
 sed -e "s|${TAHOE_LAFS_DIR}/src|${INSTALL_DIR}/src|" \
-    "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/easy-install.pth" > \
-    "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/easy-install.pth.tmp"
+         "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/easy-install.pth" > \
+         "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/easy-install.pth.tmp"
 mv  "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/allmydata-tahoe.egg-link.tmp" \
     "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/allmydata-tahoe.egg-link"
 mv  "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/easy-install.pth.tmp" \
