@@ -115,23 +115,68 @@ else
         exit 1
 fi
 
-# We default to downloading with wget. If wget is not found, we look
-# for aria2c. If aria2c is not found, we fallback to curl. If curl is not
-# available, we exit.
+FETCH () {
+# We default to downloading with wget. If wget is not found, we look for
+# aria2c. If aria2c is not found, we fallback to curl. If curl is not
+# available, we try eepget before we exit.
 
-if [ $(which wget) ]; then
-    export DOWNLOADWITH="wget"
-elif [ $(which fetch) ]; then
-    export DOWNLOADWITH="fetch"
-elif [ $(which aria2c) ]; then
-    export DOWNLOADWITH="aria2c"
-elif [ $(which curl) ]; then
-    export DOWNLOADWITH="curl"
-else
-    echo "ERROR: Neither wget, fetch aria2c, nor curl were found!" >&2
-    echo "       Install either of these tools and re-run this script." >&2
-    exit 1
-fi
+    if [ -x "${HOME}/i2p/eepget" ] && [ ! $(echo ${PATH} |grep \/i2p) ]; then
+        PATH=${PATH}:${HOME}/i2p
+    fi
+
+    if [ $(which wget) ]; then
+        DOWNLOADTOOL="wget"
+    elif [ $(which aria2c) ]; then
+        DOWNLOADTOOL="aria2c"
+    elif [ $(which curl) ]; then
+        DOWNLOADTOOL="curl"
+    elif [ $(which fetch) ]; then
+        DOWNLOADTOOL="fetch"
+    elif [ $(which eepget) ]; then
+        DOWNLOADTOOL="eepget"
+    else
+        echo "ERROR: Couldn't locate any usable download tools." >&2
+        echo "       Looked for wget, curl, aria2c, eepget and fetch." >&2
+        exit 1
+    fi
+
+    if [ x$1 = 'x' ]; then
+        # We'll end up here if the FETCH function is called without arguments, such as when
+        # tahoe-i2p-install is called with the --version argument.
+        echo "$DOWNLOADTOOL"
+        return 0
+    else
+        if [ ${opt_no_proxy} ]; then
+            unset http_proxy https_proxy
+            if [ $DOWNLOADTOOL = "wget" ]; then
+                DOWNLOADCMD="${DOWNLOADTOOL} --no-proxy --tries=3 -c $1"
+            elif [ $DOWNLOADTOOL = 'eepget' ]; then
+                DOWNLOADCMD="${DOWNLOADTOOL} -p :0 -n 3 $1"
+            elif [ $DOWNLOADTOOL = 'fetch' ]; then
+                DOWNLOADCMD="${DOWNLOADTOOL} -a -m -d $1"
+            elif [ $DOWNLOADTOOL = 'aria2c' ]; then
+                DOWNLOADCMD="${DOWNLOADTOOL} --all-proxy \"\" $1"
+            elif [ $DOWNLOADTOOL = 'curl' ]; then
+                DOWNLOADCMD="${DOWNLOADTOOL} -OL -x \"\" $1"
+            fi
+        else
+            if [ $DOWNLOADTOOL = 'wget' ]; then
+                DOWNLOADCMD="${DOWNLOADTOOL} --tries=3 -c $1"
+            elif [ $DOWNLOADTOOL = 'eepget' ]; then
+                DOWNLOADCMD="${DOWNLOADTOOL} -p $http_proxy -n 3 $1"
+            elif [ $DOWNLOADTOOL = 'fetch' ]; then
+                DOWNLOADCMD="${DOWNLOADTOOL} -a -m -d $1"
+            elif [ $DOWNLOADTOOL = 'aria2c' ]; then
+                DOWNLOADCMD="${DOWNLOADTOOL} $1"
+            elif [ $DOWNLOADTOOL = 'curl' ]; then
+                DOWNLOADCMD="${DOWNLOADTOOL} -OL $1"
+            fi
+        fi
+    fi
+
+    echo "Attempting to download from $1"
+    $DOWNLOADCMD
+}
 
 patching_failed() {
     echo >&2
@@ -231,27 +276,9 @@ fetch_packages() {
     for p in "${FOOLSCAP_PATCH}" "${TAHOE_LAFS_PATCH}" ; do
 
             if [ ${opt_no_proxy} ] ; then
-                    if [ $DOWNLOADWITH = "wget" ]; then
-                            wget -c --no-proxy "${PATCH_HOME_WWW}/${p}" || fetch_failed patch
-                    elif [ $DOWNLOADWITH = "fetch" ]; then
-                            fetch -a -m -d "${PATCH_HOME_WWW}/${p}" || fetch_failed patch
-                    elif [ $DOWNLOADWITH = "aria2c" ]; then
-                            aria2c --all-proxy "" "${PATCH_HOME_WWW}/${p}" || fetch_failed patch
-                    else
-                            echo; echo "Downloading ${PATCH_HOME_WWW}/${p}"
-                            curl -OL -x "" "${PATCH_HOME_WWW}/${p}" || fetch_failed patch
-                    fi
+                FETCH "${PATCH_HOME_WWW}/${p}"  || fetch_failed patch
             else
-                    if [ $DOWNLOADWITH = "wget" ]; then
-                            wget -c "${PATCH_HOME_I2P}/${p}" || fetch_failed patch
-                    elif [ $DOWNLOADWITH = "fetch" ]; then
-                            fetch -a -m "${PATCH_HOME_I2P}/${p}" || fetch_failed patch
-                    elif [ $DOWNLOADWITH = "aria2c" ]; then
-                            aria2c "${PATCH_HOME_I2P}/${p}" || fetch_failed patch
-                    else
-                            echo; echo "Downloading from ${PATCH_HOME_I2P}/${p}"
-                            curl -OL "${PATCH_HOME_I2P}/${p}" || fetch_failed patch
-                    fi
+                FETCH "${PATCH_HOME_I2P}/${p}"  || fetch_failed patch
             fi
     done
 
@@ -261,48 +288,18 @@ fetch_packages() {
                     "${TAHOE_DEPS_HOME}" "${TAHOE_DEPS_PKG}" "${TAHOE_DEPS_PKG_EXTENSION}" \
                     "${TAHOE_LAFS_HOME}" "${TAHOE_LAFS_PKG}" "${TAHOE_LAFS_PKG_EXTENSION}"
 
-                stack="$@"
-                while [ -n "${stack}" ]; do
-
-                    if [ $DOWNLOADWITH = "wget" ]; then
-                                wget -c "${1}/${2}${3}" || fetch_failed package
-                    elif [ $DOWNLOADWITH = "fetch" ]; then
-                                fetch -a -m "${1}/${2}${3}" || fetch_failed package
-                    elif [ $DOWNLOADWITH = "aria2c" ]; then
-                                aria2c "${1}/${2}${3}" || fetch_failed package
-                    else
-                        echo; echo "Downloading from ${1}/${2}${3}"
-                        curl -OL "${1}/${2}${3}" || fetch_failed package
-                    fi
-
-                    shift 3
-                    stack="$@"
-                done
         else
                 set "${FOOLSCAP_HOME_I2P}" "${FOOLSCAP_PKG}" "${FOOLSCAP_PKG_EXTENSION}" \
                     "${TAHOE_DEPS_HOME_I2P}" "${TAHOE_DEPS_PKG}" "${TAHOE_DEPS_PKG_EXTENSION}" \
                     "${TAHOE_LAFS_HOME_I2P}" "${TAHOE_LAFS_PKG}" "${TAHOE_LAFS_PKG_EXTENSION}"
-
-                stack="$@"
-                while [ -n "${stack}" ]; do
-
-                    if [ $DOWNLOADWITH = "wget" ]; then
-                                wget -c "${1}/${2}${3}" || fetch_failed package
-                    elif [ $DOWNLOADWITH = "fetch" ]; then
-                                fetch -a -m "${1}/${2}${3}" || fetch_failed package
-                    elif [ $DOWNLOADWITH = "aria2c" ]; then
-                                aria2c "${1}/${2}${3}" || fetch_failed package
-                    else
-                        echo; echo "Downloading from ${1}/${2}${3}"
-                        curl -OL "${1}/${2}${3}" || fetch_failed package
-                    fi
-
-                    shift 3
-                    stack="$@"
-                done
-
         fi
 
+        stack="$@"
+        while [ -n "${stack}" ]; do
+            FETCH "${1}/${2}${3}" || fetch_failed package
+            shift 3
+            stack="$@"
+        done
 
     cd "$OLDPWD"
 }
@@ -506,9 +503,9 @@ while [ $# -gt 0 ] ; do
             echo "  ${TAHOE_LAFS_PATCH}"
             echo "  ${FOOLSCAP_PATCH}"
             echo
-            echo "Downloads will be performed using $DOWNLOADWITH"
+            echo "Downloads will be performed using $(FETCH)"
             echo "and checksums will be verified with"
-            echo "$SHA256_BIN"
+            echo "$SHA256_BIN."
             echo
             echo "Python version $PYTHON_VERSION detected."
             exit 0 ;;
