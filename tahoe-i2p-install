@@ -49,15 +49,18 @@ FOOLSCAP_PKG="foolscap-${FOOLSCAP_VERSION}"
 FOOLSCAP_PKG_EXTENSION=".tar.gz"
 FOOLSCAP_PATCH="foolscap-i2p-${FOOLSCAP_VERSION}-${FOOLSCAP_PATCH_REVISION}.patch"
 FOOLSCAP_HOME="http://foolscap.lothar.com/releases"
+FOOLSCAP_HOME_I2P="http://aululz24ugumppq56jsaw3d7mkbmcgo7dl2lgeanvpniyk2cbrda.b32.i2p/tahoe-lafs/upstream"
 
 TAHOE_DEPS_PKG="tahoe-deps-v${TAHOE_DEPS_VERSION}"
 TAHOE_DEPS_PKG_EXTENSION=".tar.bz2"
-TAHOE_DEPS_HOME="http://tahoe-lafs.org/source/tahoe-lafs/deps"
+TAHOE_DEPS_HOME="https://tahoe-lafs.org/source/tahoe-lafs/deps"
+TAHOE_DEPS_HOME_I2P="http://aululz24ugumppq56jsaw3d7mkbmcgo7dl2lgeanvpniyk2cbrda.b32.i2p/tahoe-lafs/upstream"
 
 TAHOE_LAFS_PKG="allmydata-tahoe-${TAHOE_LAFS_VERSION}"
 TAHOE_LAFS_PKG_EXTENSION=".tar.bz2"
 TAHOE_LAFS_PATCH="tahoe-lafs-i2p-${TAHOE_LAFS_VERSION}-${TAHOE_LAFS_PATCH_REVISION}.patch"
-TAHOE_LAFS_HOME="http://tahoe-lafs.org/source/tahoe-lafs/releases"
+TAHOE_LAFS_HOME="https://tahoe-lafs.org/source/tahoe-lafs/releases"
+TAHOE_LAFS_HOME_I2P="http://aululz24ugumppq56jsaw3d7mkbmcgo7dl2lgeanvpniyk2cbrda.b32.i2p/tahoe-lafs/upstream"
 
 # Don't mess with these or you might end up with a deleted WORKING_DIR
 
@@ -254,29 +257,52 @@ fetch_packages() {
 
         if [ ${opt_no_proxy} ] ; then
                 unset http_proxy https_proxy
-        fi
+                set "${FOOLSCAP_HOME}" "${FOOLSCAP_PKG}" "${FOOLSCAP_PKG_EXTENSION}" \
+                    "${TAHOE_DEPS_HOME}" "${TAHOE_DEPS_PKG}" "${TAHOE_DEPS_PKG_EXTENSION}" \
+                    "${TAHOE_LAFS_HOME}" "${TAHOE_LAFS_PKG}" "${TAHOE_LAFS_PKG_EXTENSION}"
 
-    set "${FOOLSCAP_HOME}" "${FOOLSCAP_PKG}" "${FOOLSCAP_PKG_EXTENSION}" \
-        "${TAHOE_DEPS_HOME}" "${TAHOE_DEPS_PKG}" "${TAHOE_DEPS_PKG_EXTENSION}" \
-        "${TAHOE_LAFS_HOME}" "${TAHOE_LAFS_PKG}" "${TAHOE_LAFS_PKG_EXTENSION}"
+                stack="$@"
+                while [ -n "${stack}" ]; do
 
-    stack="$@"
-    while [ -n "${stack}" ]; do
+                    if [ $DOWNLOADWITH = "wget" ]; then
+                                wget -c "${1}/${2}${3}" || fetch_failed package
+                    elif [ $DOWNLOADWITH = "fetch" ]; then
+                                fetch -a -m "${1}/${2}${3}" || fetch_failed package
+                    elif [ $DOWNLOADWITH = "aria2c" ]; then
+                                aria2c "${1}/${2}${3}" || fetch_failed package
+                    else
+                        echo; echo "Downloading from ${1}/${2}${3}"
+                        curl -OL "${1}/${2}${3}" || fetch_failed package
+                    fi
 
-        if [ $DOWNLOADWITH = "wget" ]; then
-                    wget -c "${1}/${2}${3}" || fetch_failed package
-        elif [ $DOWNLOADWITH = "fetch" ]; then
-                    fetch -a -m "${1}/${2}${3}" || fetch_failed package
-        elif [ $DOWNLOADWITH = "aria2c" ]; then
-                    aria2c "${1}/${2}${3}" || fetch_failed package
+                    shift 3
+                    stack="$@"
+                done
         else
-            echo; echo "Downloading from ${1}/${2}${3}"
-            curl -OL "${1}/${2}${3}" || fetch_failed package
+                set "${FOOLSCAP_HOME_I2P}" "${FOOLSCAP_PKG}" "${FOOLSCAP_PKG_EXTENSION}" \
+                    "${TAHOE_DEPS_HOME_I2P}" "${TAHOE_DEPS_PKG}" "${TAHOE_DEPS_PKG_EXTENSION}" \
+                    "${TAHOE_LAFS_HOME_I2P}" "${TAHOE_LAFS_PKG}" "${TAHOE_LAFS_PKG_EXTENSION}"
+
+                stack="$@"
+                while [ -n "${stack}" ]; do
+
+                    if [ $DOWNLOADWITH = "wget" ]; then
+                                wget -c "${1}/${2}${3}" || fetch_failed package
+                    elif [ $DOWNLOADWITH = "fetch" ]; then
+                                fetch -a -m "${1}/${2}${3}" || fetch_failed package
+                    elif [ $DOWNLOADWITH = "aria2c" ]; then
+                                aria2c "${1}/${2}${3}" || fetch_failed package
+                    else
+                        echo; echo "Downloading from ${1}/${2}${3}"
+                        curl -OL "${1}/${2}${3}" || fetch_failed package
+                    fi
+
+                    shift 3
+                    stack="$@"
+                done
+
         fi
 
-        shift 3
-        stack="$@"
-    done
 
     cd "$OLDPWD"
 }
@@ -345,13 +371,20 @@ unpack_all() {
 
 print_urls () {
             echo
-            echo "Files will be retrieved from"
-            echo
-            echo "  ${FOOLSCAP_HOME}/${FOOLSCAP_PKG}${FOOLSCAP_PKG_EXTENSION}"
-            echo "  ${TAHOE_LAFS_HOME}/${TAHOE_LAFS_PKG}${TAHOE_LAFS_PKG_EXTENSION}"
-            echo "  ${TAHOE_DEPS_HOME}/${TAHOE_DEPS_PKG}${TAHOE_DEPS_PKG_EXTENSION}"
+            echo "Files will be downloaded via I2P from"
+            echo "  ${TAHOE_LAFS_HOME_I2P}/${TAHOE_LAFS_PKG}${TAHOE_LAFS_PKG_EXTENSION}"
             echo "  ${PATCH_HOME_I2P}/${FOOLSCAP_PATCH}"
             echo "  ${PATCH_HOME_I2P}/${TAHOE_LAFS_PATCH}"
+            echo "  ${FOOLSCAP_HOME_I2P}/${FOOLSCAP_PKG}${FOOLSCAP_PKG_EXTENSION}"
+            echo "  ${TAHOE_DEPS_HOME_I2P}/${TAHOE_DEPS_PKG}${TAHOE_DEPS_PKG_EXTENSION}"
+            echo
+            echo
+            echo "If --no-proxy is specified, I'll use:"
+            echo "  ${TAHOE_LAFS_HOME}/${TAHOE_LAFS_PKG}${TAHOE_LAFS_PKG_EXTENSION}"
+            echo "  ${PATCH_HOME_WWW}/${FOOLSCAP_PATCH}"
+            echo "  ${PATCH_HOME_WWW}/${TAHOE_LAFS_PATCH}"
+            echo "  ${FOOLSCAP_HOME}/${FOOLSCAP_PKG}${FOOLSCAP_PKG_EXTENSION}"
+            echo "  ${TAHOE_DEPS_HOME}/${TAHOE_DEPS_PKG}${TAHOE_DEPS_PKG_EXTENSION}"
             echo
             echo "If desired, you can download these files manully to $(pwd), and run"
             echo "this script with the --no-fetch option."
