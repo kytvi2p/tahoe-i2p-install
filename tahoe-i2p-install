@@ -232,7 +232,7 @@ build_tahoe_lafs() {
     mkdir -p "${TAHOE_LAFS_DIR}/support/lib/python${PYTHON_VERSION}/site-packages"
     export PYTHONPATH="${TAHOE_LAFS_DIR}/support/lib/python${PYTHON_VERSION}/site-packages"
 
-    if [ -n ${opt_make_dist} ] ; then
+    if [ ${opt_make_dist} ] ; then
         $PYTHON setup.py build || exit 1
         $PYTHON setup.py bdist || exit 1
         cp -f dist/* "${WORKING_DIR}"
