@@ -590,9 +590,14 @@ mv  "${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages/easy-insta
 echo
 echo ">>> Finished tahoe-i2p-install"
 echo
-echo "Be sure to update your environment:"
-echo
-echo "  export PATH=\"${INSTALL_DIR}/bin:\${PATH}\""
-echo "  export PYTHONPATH=\"${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages:\${PYTHONPATH}\""
-echo
+if [ ! $(echo $PATH |grep "${INSTALL_DIR}/bin") ]; then
+    echo "Be sure to update your environment:"
+    echo
+    echo "  export PATH=\"${INSTALL_DIR}/bin:\${PATH}\""
+    #echo "  export PYTHONPATH=\"${INSTALL_DIR}/support/lib/python${PYTHON_VERSION}/site-packages:\${PYTHONPATH}\""
+    echo
+    echo "Otherwise, the full path will need to be used, such as \"${INSTALL_DIR}/bin/tahoe\""
+else
+    echo "Tahoe-LAFS is already in your PATH."
+fi
 # vim:fenc=utf-8:ai:si:ts=4:sw=4:et:nu:fdm=indent:fdn=1
