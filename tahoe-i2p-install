@@ -102,7 +102,7 @@ if [ $(which sha256sum) ]; then
         SHA256_BIN="sha256sum"
 elif [ $(which sha256) ]; then
         SHA256_BIN="sha256 -r"
-elif [ $(uname -s |tr [A-Z] [a-z]) = "netbsd" ]; then
+elif [ $(uname -s |tr "[A-Z]" "[a-z]") = "netbsd" ]; then
         if [ $(which cksum) ]; then
                 SHA256_BIN="cksum -a sha256 -n"
         fi
