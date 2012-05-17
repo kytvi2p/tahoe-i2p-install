@@ -115,7 +115,7 @@ else
         exit 1
 fi
 
-FETCH () {
+FETCH() {
 # We default to downloading with wget. If wget is not found, we look for
 # aria2c. If aria2c is not found, we fallback to curl. If curl is not
 # available, we try eepget before we exit.
@@ -255,7 +255,7 @@ clean_build_dirs() {
     cd "$OLDPWD"
 }
 
-fetch_failed () {
+fetch_failed() {
 
     echo >&2
     echo "ERROR: Failed to download ${1}. Try fetching it manually and run" >&2
@@ -366,7 +366,7 @@ unpack_all() {
     cd "$OLDPWD"
 }
 
-print_urls () {
+print_urls() {
             echo
             echo "Files will be downloaded via I2P from"
             echo "  ${TAHOE_LAFS_HOME_I2P}/${TAHOE_LAFS_PKG}${TAHOE_LAFS_PKG_EXTENSION}"
