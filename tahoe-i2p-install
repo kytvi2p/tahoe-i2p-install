@@ -116,9 +116,9 @@ else
 fi
 
 FETCH() {
-# We default to downloading with wget. If wget is not found, we look for
-# aria2c. If aria2c is not found, we fallback to curl. If curl is not
-# available, we try eepget before we exit.
+    # We default to downloading with wget. If wget is not found, we look for
+    # aria2c. If aria2c is not found, we fallback to curl. If curl is not
+    # available, we try eepget before we exit.
 
     if [ -x "${HOME}/i2p/eepget" ] && [ ! $(echo ${PATH} |grep \/i2p) ]; then
         PATH=${PATH}:${HOME}/i2p
@@ -395,14 +395,17 @@ usage() {
 Builds and installs tahoe-lafs-i2p in the current directory.
 
 By default this attempts to download all required packages and patches
-anonymously using an I2P HTTP proxy listening on 127.0.0.1:4444 and an I2P
+anonymously over I2P using the HTTP proxy listening on 127.0.0.1:4444 and the I2P
 HTTPS proxy on 127.0.0.1:4445. The default proxy locations can be overridden
-with the http_proxy & https_proxy environment variables, but any used proxies
+with the http_proxy & https_proxy environment variables but any used proxies
 must be an I2P HTTP proxy; Tor proxies won't work.
 
-For faster, non-anonymous downloads specify --no-proxy and the normal Web will
-be used. If all required packages and patches already exist in the current
-directory, specify --no-fetch.
+For faster (but non-anonymous) downloads, specify --no-proxy; the files will
+be downloaded directly from the Inernet. If all required packages and patches
+already exist in the current directory, specify --no-fetch.
+
+Finally, if you'd rather download the files yourself, the download locations
+can be printed with --print-urls.
 
 Options:
   -d, --make-dist             create distributable archive
@@ -410,8 +413,8 @@ Options:
   -k, --keep-build-dirs       don't remove build directories when done
   -n, --no-proxy              don't use proxy for fetching [NOT anonymous!]
   -v, --version               show version information and exit
-  -x, --no-fetch              do networkless install; don't download anything
-      --print-urls            show download locations
+  -x, --no-fetch              networkless install; don't download anything
+  -u, --print-urls            show download locations
 EOF
     exit 0
 }
