@@ -78,9 +78,11 @@ if [ -f /etc/arch-release ]; then
                 echo "       the net-tools package and re-run this script." >&2
                 exit 1
         fi
+    : ${PYTHON:="python2"}
+else
+    : ${PYTHON:="python"}
 fi
 
-: ${PYTHON:="python"}
 export PYTHON
 PYTHON_VERSION=$($PYTHON --version 2>&1 | cut -d ' ' -f2 | cut -c 1-3)
 if [ $PYTHON_VERSION != "2.5" ] &&
