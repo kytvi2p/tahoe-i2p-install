@@ -537,24 +537,52 @@ done
 export http_proxy https_proxy
 set -e
 
+NUMPROX=0
+
+if [ $http_proxy != "127.0.0.1:4444" ] &&
+   [ $http_proxy != "localhost:4444" ]; then
+    NUMPROX=$(expr $NUMPROX + 1)
+fi
+
+if [ $https_proxy != "127.0.0.1:4445" ] &&
+   [ $https_proxy != "localhost:4445" ]; then
+    NUMPROX=$(expr $NUMPROX + 1)
+fi
+
+if [ $NUMPROX -gt 1 ]; then
+    VARI="variables"
+else
+    VARI="variable"
+fi
+
 trap 'echo;echo "CTRL+C keypress detected.";
       echo "To use the default I2P Proxies you may call this script as";
       echo "        http_proxy=\"\" https_proxy=\"\" $0 [options]";
       echo' INT
 if [ $http_proxy != "127.0.0.1:4444" ] &&
         [ $http_proxy != "localhost:4444" ]; then
-        echo "WARNING: Detected the following non-default environment variable(s)."
+        echo
+        echo "WARNING: Detected the following non-default environment ${VARI}:"
         echo "         http_proxy: $http_proxy"
         if [ $https_proxy != "127.0.0.1:4445" ] &&
                 [ $https_proxy != "localhost:4445" ]; then
                 echo  "         https_proxy: $https_proxy"
                 echo
         fi
-        echo "If these are not I2P proxies, abort this script and set the"
-        echo "http*_proxy variables to point to your I2P proxies."
-        echo
-        echo "If these *are* I2P proxies, please wait 10 seconds and this"
-        echo "script will continue."
+
+        if [ $NUMPROX -gt 1 ]; then
+            echo "If these are not I2P proxies, abort this script and set the"
+            echo "http*_proxy variables to point to your I2P proxies."
+            echo
+            echo "If these *are* I2P proxies, please wait 10 seconds and this"
+            echo "script will continue."
+        else
+            echo "If this is not an I2P proxy, abort this script and set the"
+            echo "http*_proxy variables to point to your I2P proxies."
+            echo
+            echo "If is *is* an I2P proxy, please wait 10 seconds and this"
+            echo "script will continue."
+        fi
         echo
         sleep 10
 fi
