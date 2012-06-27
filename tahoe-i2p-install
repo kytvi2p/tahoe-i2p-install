@@ -476,6 +476,10 @@ while [ $# -gt 0 ] ; do
             opt_keep_build_dirs=1
             shift ;;
 
+        -f|--fetch)
+            unset opt_no_fetch
+            shift ;;
+
         -n|--no-proxy)
             opt_no_proxy=1
             unset http_proxy https_proxy
