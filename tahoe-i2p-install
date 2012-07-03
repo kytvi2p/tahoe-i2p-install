@@ -415,11 +415,14 @@ Options:
   -n, --no-proxy              don't use proxy for fetching [NOT anonymous!]
   -v, --version               show version information and exit
   -x, --no-fetch              networkless install; don't download anything
+  -f, --fetch                 fetch files from network
   -u, --print-urls            show download locations
 EOF
     exit 0
 }
 
+# This gets set by default in the offline installer
+#opt_no_fetch=1
 verify_hashes() {
     local sha256
 
@@ -520,6 +523,10 @@ while [ $# -gt 0 ] ; do
 
         -x|--no-fetch)
             opt_no_fetch=1
+            shift ;;
+
+        -f|--fetch)
+            unset opt_no_fetch
             shift ;;
 
         -*)
