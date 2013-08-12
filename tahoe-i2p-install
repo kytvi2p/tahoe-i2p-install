@@ -347,16 +347,6 @@ unpack_all() {
                 echo "Aborting." >&2
                 exit 1 ;;
         esac
-        if [ ! $(which bzip2) ]; then
-                echo "bzip2 not found!" >&2
-                echo "Please install bzip2 then re-run this script." >&2
-                exit 1
-        fi
-
-        if [ ! $(which tar) ]; then
-                echo "tar not found!" >&2
-                echo "Please install tar then re-run this script." >&2
-        fi
 
         tar -x ${tar_filter_opt} -vf "${pkg}" || echo "Extraction failed." >&2
     done
@@ -465,6 +455,42 @@ verify_hashes() {
 
     echo
     cd "$OLDPWD"
+}
+
+
+look_for_tools() {
+
+    if [ -e "/etc/debian_version" ] && $(grep '.*ARMv6.*(v6l)' /proc/cpuinfo >/dev/null); then
+        if ! $(dpkg -l python-openssl > /dev/null 2>&1); then
+            echo "ERROR: Please install the package \"python-openssl\" and re-run this script." >&2
+            exit 1
+        fi
+    fi
+
+    if [ ! $(which bzip2) ]; then
+        echo "bzip2 not found!" >&2
+        echo "Please install bzip2 then re-run this script." >&2
+        exit 1
+    fi
+
+    if [ ! $(which tar) ]; then
+        echo "tar not found!" >&2
+        echo "Please install tar then re-run this script." >&2
+    fi
+
+    if [ ! $(which patch) ]; then
+        echo "patch not found!" >&2
+        echo "Please install patch then re-run this script." >&2
+    fi
+
+    if [ ! $(which gcc) ]; then
+        echo "gcc not found!" >&2
+        if [ -e /etc/debian_version ]; then
+            echo "Please install the build-essential package and re-run this script." >&2
+        else
+            echo "Please install gcc then re-run this script." >&2
+        fi
+    fi
 }
 
 while [ $# -gt 0 ] ; do
@@ -599,6 +625,7 @@ fi
 trap - INT TERM EXIT
 
 # Always start with clean build dirs
+look_for_tools
 clean_build_dirs
 
 [ ! ${opt_no_fetch} ] && fetch_packages
