@@ -99,21 +99,23 @@ fi
 
 # Detect sha256 checksum binary
 
-if [ $(which sha256sum) ]; then
-        SHA256_BIN="sha256sum"
+if [ $(which openssl) ]; then
+    SHA256_BIN="openssl dgst -sha256 -r"
+elif [ $(which sha256sum) ]; then
+    SHA256_BIN="sha256sum"
 elif [ $(which sha256) ]; then
-        SHA256_BIN="sha256 -r"
+    SHA256_BIN="sha256 -r"
 elif [ $(uname -s |tr "[A-Z]" "[a-z]") = "netbsd" ]; then
-        if [ $(which cksum) ]; then
-                SHA256_BIN="cksum -a sha256 -n"
-        fi
+    if [ $(which cksum) ]; then
+        SHA256_BIN="cksum -a sha256 -n"
+    fi
 elif [ $(which shasum) ]; then
-        SHA256_BIN="shasum -a256"
+    SHA256_BIN="shasum -a256"
 else
-        echo >&2
-        echo "Error: Failed to locate sha256 checksum binary. Aborting." >&2
-        echo >&2
-        exit 1
+    echo >&2
+    echo "Error: Failed to locate sha256 checksum binary. Aborting." >&2
+    echo >&2
+    exit 1
 fi
 
 FETCH() {
