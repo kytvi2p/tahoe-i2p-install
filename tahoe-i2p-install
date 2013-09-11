@@ -99,24 +99,28 @@ fi
 
 # Detect sha256 checksum binary
 
+SHA256_BIN() {
+
+
 if [ $(which openssl) ]; then
-    SHA256_BIN="openssl dgst -sha256 -r"
+    openssl dgst -sha256 "$1" | sed 's|SHA256(\(.*\))= \([a-z0-9]\{64\}\)|\2\ *\1|'
 elif [ $(which sha256sum) ]; then
-    SHA256_BIN="sha256sum"
+    sha256sum "$1"
 elif [ $(which sha256) ]; then
-    SHA256_BIN="sha256 -r"
+    sha256 -r "$1"
 elif [ $(uname -s |tr "[A-Z]" "[a-z]") = "netbsd" ]; then
     if [ $(which cksum) ]; then
-        SHA256_BIN="cksum -a sha256 -n"
+        cksum -a sha256 -n "$1"
     fi
 elif [ $(which shasum) ]; then
-    SHA256_BIN="shasum -a256"
+    shasum -a256 "$1"
 else
     echo >&2
-    echo "Error: Failed to locate sha256 checksum binary. Aborting." >&2
+    echo "Error: Failed to locate a sha256 checksum binary. Aborting." >&2
     echo >&2
     exit 1
 fi
+}
 
 FETCH() {
     # We default to downloading with wget. If wget is not found, we look for
@@ -434,7 +438,7 @@ verify_hashes() {
     while [ -n "${stack}" ] ; do
         echo -n "${1} ... "
 
-        sha256=$(${SHA256_BIN} "${1}" | cut -d ' ' -f1)
+        sha256=$(SHA256_BIN "${1}" | cut -d ' ' -f1)
 
         if [ ${sha256} = ${2} ] ; then
             echo "OK"
@@ -542,9 +546,7 @@ while [ $# -gt 0 ] ; do
             echo "  ${TAHOE_LAFS_PATCH}"
             echo "  ${FOOLSCAP_PATCH}"
             echo
-            echo "Downloads will be performed using $(FETCH)"
-            echo "and checksums will be verified with"
-            echo "$SHA256_BIN."
+            echo "Downloads will be performed using $(FETCH)."
             echo
             echo "Python version $PYTHON_VERSION detected."
             exit 0 ;;
