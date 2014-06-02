@@ -137,13 +137,11 @@ FETCH() {
         DOWNLOADTOOL="aria2c"
     elif [ $(which curl) ]; then
         DOWNLOADTOOL="curl"
-    elif [ $(which fetch) ]; then
-        DOWNLOADTOOL="fetch"
     elif [ $(which eepget) ]; then
         DOWNLOADTOOL="eepget"
     else
         echo "ERROR: Couldn't locate any usable download tools." >&2
-        echo "       Looked for wget, curl, aria2c, eepget and fetch." >&2
+        echo "       Looked for wget, curl, aria2c, and eepget." >&2
         exit 1
     fi
 
@@ -159,8 +157,6 @@ FETCH() {
                 DOWNLOADCMD="${DOWNLOADTOOL} --no-proxy --tries=3 -c $1"
             elif [ $DOWNLOADTOOL = 'eepget' ]; then
                 DOWNLOADCMD="${DOWNLOADTOOL} -p :0 -n 3 $1"
-            elif [ $DOWNLOADTOOL = 'fetch' ]; then
-                DOWNLOADCMD="${DOWNLOADTOOL} -a -m -d $1"
             elif [ $DOWNLOADTOOL = 'aria2c' ]; then
                 DOWNLOADCMD="${DOWNLOADTOOL} --all-proxy \"\" $1"
             elif [ $DOWNLOADTOOL = 'curl' ]; then
@@ -171,8 +167,6 @@ FETCH() {
                 DOWNLOADCMD="${DOWNLOADTOOL} --tries=3 -c $1"
             elif [ $DOWNLOADTOOL = 'eepget' ]; then
                 DOWNLOADCMD="${DOWNLOADTOOL} -p $http_proxy -n 3 $1"
-            elif [ $DOWNLOADTOOL = 'fetch' ]; then
-                DOWNLOADCMD="${DOWNLOADTOOL} -a -m -d $1"
             elif [ $DOWNLOADTOOL = 'aria2c' ]; then
                 DOWNLOADCMD="${DOWNLOADTOOL} $1"
             elif [ $DOWNLOADTOOL = 'curl' ]; then
